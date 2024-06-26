@@ -1,0 +1,7 @@
+{
+  "files.readonlyInclude": { 
+    "docs/**": true,
+    "node_modules/*": true,
+    "src/.observablehq/*": true
+  }
+}

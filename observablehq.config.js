@@ -5,4 +5,21 @@ export default {
   output:    'docs',
   cleanUrls: false,
   search:    true,
+  pages: [
+    {
+      name: 'Dashboards for Overview',
+      path: '/overview/'
+    },
+    {
+      name: 'Dashboards for Alerting',
+      path: '/alerting/'
+    },
+    {
+      name: `Odds 'n Ends`,
+      path: '/odds-n-ends/',
+      pages: [
+        { path: 'odds-n-ends/esql-query.html', name: 'ES|QL query tester' },
+      ],
+    },
+  ]
 }

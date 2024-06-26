@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Odds &#x27;n Ends - ES|QL query | eslp Dashboards</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="../_observablehq/theme-air,near-midnight.css">
+<link rel="preload" as="style" href="../_observablehq/stdlib/inputs.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="../_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="../_observablehq/stdlib/inputs.css">
+<link rel="modulepreload" href="../_observablehq/client.js">
+<link rel="modulepreload" href="../_observablehq/runtime.js">
+<link rel="modulepreload" href="../_observablehq/stdlib.js">
+<link rel="modulepreload" href="../_import/components/proxy-picker.ee8124a7.js">
+<link rel="modulepreload" href="../_import/components/esql.8b801463.js">
+<link rel="modulepreload" href="../_node/@observablehq/inputs@0.10.6/index.js">
+<link rel="modulepreload" href="../_observablehq/stdlib/inputs.js">
+<link rel="modulepreload" href="../_npm/htl@0.3.1/_esm.js">
+<link rel="modulepreload" href="../_npm/isoformat@0.2.1/_esm.js">
+<link rel="modulepreload" href="../_node/htl@0.3.1/index.js">
+<link rel="modulepreload" href="../_node/isoformat@0.2.1/index.js">
+<script type="module">
+
+import {define} from "../_observablehq/client.js";
+
+define({id: "e80f5a53", outputs: ["getProxies","esqlQuery","proxies"], body: async () => {
+const [{getProxies}, {esqlQuery}] = await Promise.all([import("../_import/components/proxy-picker.ee8124a7.js"), import("../_import/components/esql.8b801463.js")]);
+const proxies = await getProxies();
+return {getProxies,esqlQuery,proxies};
+}});
+
+define({id: "1cc50b59", inputs: ["view","Inputs","proxies"], outputs: ["proxy"], body: (view,Inputs,proxies) => {
+const proxy = view(Inputs.select(proxies))
+return {proxy};
+}});
+
+define({id: "219a978a", inputs: ["esqlQuery","proxy"], outputs: ["data"], body: async (esqlQuery,proxy) => {
+const data = await esqlQuery(proxy.es, `
+  FROM .kibana-event-log-*
+
+  | WHERE event.provider == "alerting"
+  | WHERE event.action   == "execute"
+
+  | RENAME rule.name                                                         AS  name
+  | RENAME rule.category                                                     AS  rule_type
+  | RENAME kibana.alert.rule.execution.metrics.total_run_duration_ms         AS  total_run_ms             
+  | RENAME kibana.alert.rule.execution.metrics.total_search_duration_ms      AS  total_search_ms                
+
+  | KEEP @timestamp, name, rule_type, total_run_ms, total_search_ms
+
+  | LIMIT 100
+`)
+return {data};
+}});
+
+define({id: "73b79a41", inputs: ["Inputs","data","display"], body: async (Inputs,data,display) => {
+display(await(
+Inputs.table(data)
+))
+}});
+
+</script>
+<input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
+<label id="observablehq-sidebar-backdrop" for="observablehq-sidebar-toggle"></label>
+<nav id="observablehq-sidebar">
+  <ol>
+    <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
+    <li class="observablehq-link"><a href="../">eslp Dashboards</a></li>
+  </ol>
+  <div id="observablehq-search"><input type="search" placeholder="Search"></div>
+  <div id="observablehq-search-results"></div>
+  <script>{const o=document.querySelector("#observablehq-search");o.setAttribute("data-shortcut",`${/Mac|iPhone/.test(navigator.platform)?"\u2318":"Alt-"}K`);const t=o.querySelector("input"),r=()=>import("../_observablehq/search.js");t.addEventListener("focus",r,{once:!0}),t.addEventListener("keydown",r,{once:!0});const c=document.querySelector("#observablehq-sidebar-toggle");addEventListener("keydown",e=>{(e.code==="KeyK"&&e.metaKey&&!e.altKey&&!e.ctrlKey||e.key==="/"&&!e.metaKey&&!e.altKey&&!e.ctrlKey&&e.target===document.body)&&(c.checked?t.focus():(c.click(),t.focus(),c.click()),t.select(),e.preventDefault())});}</script>
+  <ol>
+    <li class="observablehq-link"><a href="../overview/">Dashboards for Overview</a></li>
+    <li class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></li>
+  </ol>
+  <section class="observablehq-section-active">
+    <summary class="observablehq-link"><a href="./">Odds &#x27;n Ends</a></summary>
+    <ol>
+    <li class="observablehq-link observablehq-link-active"><a href="./esql-query.html">ES|QL query tester</a></li>
+    </ol>
+  </section>
+</nav>
+<script>{Object.assign(document.createElement("a"),{href:""}).password&&location.replace(location.href);const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
+<nav>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="odds-'n-ends---es%7Cql-query" tabindex="-1"><a class="observablehq-header-anchor" href="#odds-'n-ends---es%7Cql-query">Odds 'n Ends - ES|QL query</a></h1>
+<p>First, select a proxy</p>
+<div class="observablehq observablehq--block"><!--:e80f5a53:--></div>
+<div class="observablehq observablehq--block"><!--:1cc50b59:--></div>
+<div class="observablehq observablehq--block"><!--:219a978a:--></div>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:73b79a41:--></div>
+</main>
+<footer id="observablehq-footer">
+<nav><a rel="prev" href="./"><span>Odds &#x27;n Ends</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-26T19:18:19">Jun 26, 2024</a>.</div>
+</footer>
+</div>
