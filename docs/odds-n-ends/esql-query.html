@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Odds &#x27;n Ends - ES|QL query | eslp Dashboards</title>
+<title>ES|QL query | eslp Dashboards</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="../_observablehq/theme-air,near-midnight.css">
@@ -13,19 +13,20 @@
 <link rel="modulepreload" href="../_observablehq/runtime.js">
 <link rel="modulepreload" href="../_observablehq/stdlib.js">
 <link rel="modulepreload" href="../_import/components/proxy-picker.ee8124a7.js">
-<link rel="modulepreload" href="../_import/components/esql.21a33d18.js">
+<link rel="modulepreload" href="../_import/components/esql.ca6b9542.js">
 <link rel="modulepreload" href="../_node/@observablehq/inputs@0.10.6/index.js">
 <link rel="modulepreload" href="../_npm/htl@0.3.1/_esm.js">
 <link rel="modulepreload" href="../_observablehq/stdlib/inputs.js">
 <link rel="modulepreload" href="../_npm/isoformat@0.2.1/_esm.js">
 <link rel="modulepreload" href="../_node/htl@0.3.1/index.js">
 <link rel="modulepreload" href="../_node/isoformat@0.2.1/index.js">
+<link rel="icon" type="image/png" href="../_file/favicon.d69f2e06.png">
 <script type="module">
 
 import {define} from "../_observablehq/client.js";
 
 define({id: "e80f5a53", outputs: ["getProxies","esqlQuery","proxies"], body: async () => {
-const [{getProxies}, {esqlQuery}] = await Promise.all([import("../_import/components/proxy-picker.ee8124a7.js"), import("../_import/components/esql.21a33d18.js")]);
+const [{getProxies}, {esqlQuery}] = await Promise.all([import("../_import/components/proxy-picker.ee8124a7.js"), import("../_import/components/esql.ca6b9542.js")]);
 const proxies = await getProxies();
 return {getProxies,esqlQuery,proxies};
 }});
@@ -97,9 +98,13 @@ return {data};
     <li class="observablehq-link"><a href="../overview/tasks.html">Tasks</a></li>
     </ol>
   </section>
-  <ol>
-    <li class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></li>
-  </ol>
+  <section>
+    <summary class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></summary>
+    <ol>
+    <li class="observablehq-link"><a href="../alerting/rules.html">Rules</a></li>
+    <li class="observablehq-link"><a href="../alerting/connectors.html">Connectors</a></li>
+    </ol>
+  </section>
   <section class="observablehq-section-active">
     <summary class="observablehq-link"><a href="./">Odds &#x27;n Ends</a></summary>
     <ol>
@@ -114,7 +119,7 @@ return {data};
 </aside>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="odds-'n-ends---es%7Cql-query" tabindex="-1"><a class="observablehq-header-anchor" href="#odds-'n-ends---es%7Cql-query">Odds 'n Ends - ES|QL query</a></h1>
+<h1 id="es%7Cql-query" tabindex="-1"><a class="observablehq-header-anchor" href="#es%7Cql-query">ES|QL query</a></h1>
 <p>First, select a proxy</p>
 <div class="observablehq observablehq--block"><!--:e80f5a53:--></div>
 <div class="observablehq observablehq--block"><!--:1cc50b59:--></div>
@@ -123,6 +128,6 @@ return {data};
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./"><span>Odds &#x27;n Ends</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T00:03:56">Jun 27, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T18:27:39">Jun 27, 2024</a>.</div>
 </footer>
 </div>

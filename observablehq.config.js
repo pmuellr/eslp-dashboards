@@ -5,6 +5,7 @@ export default {
   output:    'docs',
   cleanUrls: false,
   search:    true,
+  head:      '<link rel="icon" type="image/png" href="favicon.png"></link>',
   pages: [
     {
       name: 'Dashboards for Overview',
@@ -15,7 +16,11 @@ export default {
     },
     {
       name: 'Dashboards for Alerting',
-      path: '/alerting/'
+      path: '/alerting/',
+      pages: [
+        { path: 'alerting/rules.html', name: 'Rules' },
+        { path: 'alerting/connectors.html', name: 'Connectors' },
+      ],
     },
     {
       name: `Odds 'n Ends`,
@@ -26,3 +31,4 @@ export default {
     },
   ]
 }
+

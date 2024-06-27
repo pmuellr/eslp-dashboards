@@ -1,4 +1,4 @@
-# Odds 'n Ends - ES|QL query
+# ES|QL query
 
 First, select a proxy
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>eslp dashboards for overview clusters | eslp Dashboards</title>
+<title>Overview | eslp Dashboards</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="../_observablehq/theme-air,near-midnight.css">
@@ -10,6 +10,7 @@
 <link rel="modulepreload" href="../_observablehq/client.js">
 <link rel="modulepreload" href="../_observablehq/runtime.js">
 <link rel="modulepreload" href="../_observablehq/stdlib.js">
+<link rel="icon" type="image/png" href="../_file/favicon.d69f2e06.png">
 <script type="module">
 
 import "../_observablehq/client.js";
@@ -31,9 +32,13 @@ import "../_observablehq/client.js";
     <li class="observablehq-link"><a href="./tasks.html">Tasks</a></li>
     </ol>
   </section>
-  <ol>
-    <li class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></li>
-  </ol>
+  <section>
+    <summary class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></summary>
+    <ol>
+    <li class="observablehq-link"><a href="../alerting/rules.html">Rules</a></li>
+    <li class="observablehq-link"><a href="../alerting/connectors.html">Connectors</a></li>
+    </ol>
+  </section>
   <section>
     <summary class="observablehq-link"><a href="../odds-n-ends/">Odds &#x27;n Ends</a></summary>
     <ol>
@@ -48,14 +53,17 @@ import "../_observablehq/client.js";
 </aside>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="eslp-dashboards-for-overview-clusters" tabindex="-1"><a class="observablehq-header-anchor" href="#eslp-dashboards-for-overview-clusters">eslp dashboards for overview clusters</a></h1>
-<p>These dashboards expect the following proxy names to be available:</p>
+<h1 id="overview" tabindex="-1"><a class="observablehq-header-anchor" href="#overview">Overview</a></h1>
+<p>These dashboards are for the Overview clusters and
+expect the following proxy names to be available:</p>
 <ul>
 <li><code>overview-pr</code> - proxy for the production Overview cluster</li>
 <li><code>overview-st</code> - proxy for the staging Overview cluster</li>
 <li><code>overview-qa</code> - proxy for the qa Overview cluster</li>
 </ul>
-<p>For instance, here are some stanzas for <code>eslp.toml</code>:</p>
+<p>For instance, here are some stanzas for <code>eslp.toml</code>; contact me if
+you need the actual URLs - they can be hard to track down and QA is
+extra squirrelly!</p>
 <pre data-language="toml"><code class="language-toml"><span class="hljs-section">[[server]]</span>
 <span class="hljs-attr">name</span>   = <span class="hljs-string">"overview-pr"</span>
 <span class="hljs-attr">es</span>     = <span class="hljs-string">"https://example.com"</span>
@@ -78,6 +86,6 @@ import "../_observablehq/client.js";
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="../"><span>eslp Dashboards</span></a><a rel="next" href="./tasks.html"><span>Tasks</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T00:03:56">Jun 27, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T18:27:39">Jun 27, 2024</a>.</div>
 </footer>
 </div>

@@ -1,4 +1,4 @@
-# tasks
+# Tasks
 
 ```js
 import { getProxies } from '../components/proxy-picker.js';
@@ -27,6 +27,7 @@ FROM .kibana-event-log-*
 
 | RENAME event.start                                                     AS date
 | RENAME event.outcome                                                   AS outcome
+| RENAME rule.id                                                         AS ruleId
 | RENAME rule.category                                                   AS ruleType
 | RENAME kibana.alert.rule.execution.metrics.alert_counts.new            AS alertsNew
 | RENAME kibana.alert.rule.execution.metrics.alert_counts.recovered      AS alertsRecovered
@@ -34,33 +35,78 @@ FROM .kibana-event-log-*
 | RENAME kibana.alert.rule.execution.metrics.number_of_generated_actions AS actionsGenerated
 | RENAME kibana.alert.rule.execution.metrics.number_of_triggered_actions AS actionsTriggered
 
-| KEEP date, outcome, ruleType, duration, delay, totalRun, totalSearch, 
+| KEEP date, outcome, ruleType, ruleId, duration, delay, totalRun, totalSearch, 
        alertsNew, alertsRecovered, alertsActive, actionsGenerated, actionsTriggered
 
-| LIMIT 100
+| SORT date desc
+| LIMIT 5000
 `.trim()
 ```
 
 ```js
-const dataPR = esqlQuery(proxyPR.es, query)
-const dataST = esqlQuery(proxyST.es, query)
-const dataQA = esqlQuery(proxyQA.es, query)
-```
+const dataPR = proxyPR.es ? await esqlQuery(proxyPR.es, query) : []
+const dataST = proxyST.es ? await esqlQuery(proxyST.es, query) : []
+const dataQA = proxyQA.es ? await esqlQuery(proxyQA.es, query) : []
 
-Production:
+const dataPRenv = dataPR.map(datum => ({ ...datum, env: 'production' }))
+const dataSTenv = dataST.map(datum => ({ ...datum, env: 'staging' }))
+const dataQAenv = dataQA.map(datum => ({ ...datum, env: 'qa' }))
+const data = dataPRenv.concat(dataSTenv).concat(dataQAenv)
+const envSort = { production: '1-production', staging: '2-staging', qa: '3-qa' }
+```
+   
+# rule duration by type
 
 ```js
-Inputs.table(dataPR)
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  y: { label: 'duration (seconds)' },
+  marks: [
+    Plot.frame(),
+    Plot.dot(data, { 
+      x: 'date', 
+      y: 'duration', 
+      fx: (d) => envSort[d.env],
+      fill: 'ruleType',
+      channels: {name: 'name', outcome: 'outcome', ruleId: 'ruleId', },
+      tip: true      
+    })
+  ]
+})
 ```
 
-Staging:
+# rule errors by type
 
 ```js
-Inputs.table(dataST)
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  y: { label: 'duration (seconds)' },
+  marks: [
+    Plot.frame(),
+    Plot.dot(data, { 
+      x: 'date', 
+      y: 'duration', 
+      fx: (d) => envSort[d.env],
+      fill: 'outcome',
+      channels: {name: 'name', outcome: 'outcome', ruleId: 'ruleId', },
+      tip: true      
+    })
+  ]
+})
 ```
 
-QA:
 
-```js
-Inputs.table(dataQA)
-```
+<!-- data as tables -->
+<details><summary>data tables</summary>
+
+Production: ${display(Inputs.table(dataPRenv))}
+
+Staging: ${display(Inputs.table(dataSTenv))}
+
+QA: ${display(Inputs.table(dataQAenv))}
+
+</details>

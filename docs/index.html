@@ -10,6 +10,7 @@
 <link rel="modulepreload" href="./_observablehq/client.js">
 <link rel="modulepreload" href="./_observablehq/runtime.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="icon" type="image/png" href="./_file/favicon.d69f2e06.png">
 <script type="module">
 
 import "./_observablehq/client.js";
@@ -31,9 +32,13 @@ import "./_observablehq/client.js";
     <li class="observablehq-link"><a href="./overview/tasks.html">Tasks</a></li>
     </ol>
   </section>
-  <ol>
-    <li class="observablehq-link"><a href="./alerting/">Dashboards for Alerting</a></li>
-  </ol>
+  <section>
+    <summary class="observablehq-link"><a href="./alerting/">Dashboards for Alerting</a></summary>
+    <ol>
+    <li class="observablehq-link"><a href="./alerting/rules.html">Rules</a></li>
+    <li class="observablehq-link"><a href="./alerting/connectors.html">Connectors</a></li>
+    </ol>
+  </section>
   <section>
     <summary class="observablehq-link"><a href="./odds-n-ends/">Odds &#x27;n Ends</a></summary>
     <ol>
@@ -49,18 +54,16 @@ import "./_observablehq/client.js";
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
 <h1 id="eslp-dashboards" tabindex="-1"><a class="observablehq-header-anchor" href="#eslp-dashboards">eslp dashboards</a></h1>
-<ul>
-<li><a href="./overview/">dashboards for overview clusters</a></li>
-<li><a href="./alerting/">dashboards for alerting</a></li>
-<li><a href="./odds-n-ends/">odds and ends</a></li>
-</ul>
-<hr>
 <p>This site is built with the Observable Framework, and requires the use
 of <code>eslp</code> - elasticsearch local proxy.  It allows you to run dashboards
 hosted in a public space, which only access data directly from the
 browser.  Luckily, since you're running <code>elsp</code>, you have access to
 Elasticsearch and Kibana APIs - CORS friendly and all that.  For
 multiple clusters, on the same plane of glass or quickly switchable.</p>
+<p>For <code>eslp</code>, you will need to be running in https mode, so follow the
+instructions to create an SSL certificate to use with <code>eslp</code>:</p>
+<p><code><a href="https://github.com/pmuellr/eslp/tree/main/cert" target="_blank" rel="noopener noreferrer">https://github.com/pmuellr/eslp/tree/main/cert</a></code></p>
+<p>The code also assumes you are running <code>eslp</code> using the default port of 19200.</p>
 <hr>
 <table>
 <thead>
@@ -87,8 +90,8 @@ multiple clusters, on the same plane of glass or quickly switchable.</p>
 <td><a href="https://github.com/pmuellr/eslp" target="_blank" rel="noopener noreferrer">https://github.com/pmuellr/eslp</a></td>
 </tr>
 <tr>
-<td>es</td>
-<td>ql</td>
+<td>es|ql</td>
+<td><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/esql.html" target="_blank" rel="noopener noreferrer">https://www.elastic.co/guide/en/elasticsearch/reference/current/esql.html</a></td>
 </tr>
 <tr>
 <td>observable framework</td>
@@ -99,6 +102,6 @@ multiple clusters, on the same plane of glass or quickly switchable.</p>
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./overview/"><span>Dashboards for Overview</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T00:03:56">Jun 27, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T18:27:39">Jun 27, 2024</a>.</div>
 </footer>
 </div>

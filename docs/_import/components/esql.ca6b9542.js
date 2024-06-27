@@ -30,11 +30,19 @@ function esqlResponseAsTidyData(esqlResponse) {
   }
 
   const names = esqlResponse.columns.map(c => c.name)
+
+  const isDate = new Map()
+  for (const column of esqlResponse.columns) {
+    isDate.set(column.name, column.type === "date")
+  }
   
   return esqlResponse.values.map(value => {
     /** @type { Record<string, unknown> } */
     const obj = {}
     for (let i = 0; i < names.length; i++) {
+      if (isDate.get(names[i])) {
+        value[i] = new Date(`${value[i]}`)
+      } 
       obj[names[i]] = value[i]
     }
     return obj
