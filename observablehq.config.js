@@ -8,7 +8,10 @@ export default {
   pages: [
     {
       name: 'Dashboards for Overview',
-      path: '/overview/'
+      path: '/overview/',
+      pages: [
+        { path: 'overview/tasks.html', name: 'Tasks' },
+      ],
     },
     {
       name: 'Dashboards for Alerting',

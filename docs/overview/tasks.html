@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Odds &#x27;n Ends - ES|QL query | eslp Dashboards</title>
+<title>tasks | eslp Dashboards</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="../_observablehq/theme-air,near-midnight.css">
@@ -15,8 +15,8 @@
 <link rel="modulepreload" href="../_import/components/proxy-picker.ee8124a7.js">
 <link rel="modulepreload" href="../_import/components/esql.21a33d18.js">
 <link rel="modulepreload" href="../_node/@observablehq/inputs@0.10.6/index.js">
-<link rel="modulepreload" href="../_npm/htl@0.3.1/_esm.js">
 <link rel="modulepreload" href="../_observablehq/stdlib/inputs.js">
+<link rel="modulepreload" href="../_npm/htl@0.3.1/_esm.js">
 <link rel="modulepreload" href="../_npm/isoformat@0.2.1/_esm.js">
 <link rel="modulepreload" href="../_node/htl@0.3.1/index.js">
 <link rel="modulepreload" href="../_node/isoformat@0.2.1/index.js">
@@ -24,60 +24,85 @@
 
 import {define} from "../_observablehq/client.js";
 
-define({id: "e80f5a53", outputs: ["getProxies","esqlQuery","proxies"], body: async () => {
+define({id: "5874da8f", outputs: ["getProxies","esqlQuery","proxies","proxyPR","proxyST","proxyQA"], body: async () => {
 const [{getProxies}, {esqlQuery}] = await Promise.all([import("../_import/components/proxy-picker.ee8124a7.js"), import("../_import/components/esql.21a33d18.js")]);
 const proxies = await getProxies();
-return {getProxies,esqlQuery,proxies};
+const proxyPR = proxies.get('overview-pr')
+const proxyST = proxies.get('overview-st')
+const proxyQA = proxies.get('overview-qa')
+return {getProxies,esqlQuery,proxies,proxyPR,proxyST,proxyQA};
 }});
 
-define({id: "1cc50b59", inputs: ["view","Inputs","proxies"], outputs: ["proxy"], body: (view,Inputs,proxies) => {
-const proxy = view(Inputs.select(proxies))
-return {proxy};
+define({id: "72b94b9e", mode: "inline", inputs: ["proxyPR","display"], body: async (proxyPR,display) => {
+display(await(
+proxyPR ? '✅' : '❌' 
+))
 }});
 
-define({id: "bc40b90d", inputs: ["view","Inputs"], outputs: ["queryDefault","query"], body: (view,Inputs) => {
-const queryDefault = `
+define({id: "e0153a55", mode: "inline", inputs: ["proxyST","display"], body: async (proxyST,display) => {
+display(await(
+proxyST ? '✅' : '❌' 
+))
+}});
+
+define({id: "33543dd0", mode: "inline", inputs: ["proxyQA","display"], body: async (proxyQA,display) => {
+display(await(
+proxyQA ? '✅' : '❌' 
+))
+}});
+
+define({id: "0a6bc9fb", outputs: ["query"], body: () => {
+const query = `
 FROM .kibana-event-log-*
-
+| WHERE @timestamp > NOW() - 4 hour
 | WHERE event.provider == "alerting"
 | WHERE event.action   == "execute"
 
-| RENAME rule.name                                                    AS  name
-| RENAME rule.category                                                AS  rule_type
-| RENAME kibana.alert.rule.execution.metrics.total_run_duration_ms    AS total_run_ms             
-| RENAME kibana.alert.rule.execution.metrics.total_search_duration_ms AS total_search_ms                
+| EVAL duration    = ROUND(event.duration / 1000000000.0, 3)
+| EVAL delay       = ROUND(kibana.task.schedule_delay / 1000000000.0, 3)
+| EVAL totalRun    = ROUND(kibana.alert.rule.execution.metrics.total_run_duration_ms / 1000.0, 3)
+| EVAL totalSearch = ROUND(kibana.alert.rule.execution.metrics.total_search_duration_ms / 1000.0, 3)
 
-| KEEP @timestamp, name, rule_type, total_run_ms, total_search_ms
+| RENAME event.start                                                     AS date
+| RENAME event.outcome                                                   AS outcome
+| RENAME rule.category                                                   AS ruleType
+| RENAME kibana.alert.rule.execution.metrics.alert_counts.new            AS alertsNew
+| RENAME kibana.alert.rule.execution.metrics.alert_counts.recovered      AS alertsRecovered
+| RENAME kibana.alert.rule.execution.metrics.alert_counts.active         AS alertsActive
+| RENAME kibana.alert.rule.execution.metrics.number_of_generated_actions AS actionsGenerated
+| RENAME kibana.alert.rule.execution.metrics.number_of_triggered_actions AS actionsTriggered
+
+| KEEP date, outcome, ruleType, duration, delay, totalRun, totalSearch, 
+       alertsNew, alertsRecovered, alertsActive, actionsGenerated, actionsTriggered
 
 | LIMIT 100
 `.trim()
-
-const query = view(Inputs.textarea({
-  label: 'query',
-  value: queryDefault,
-  spellcheck: false,
-  autocomplete: false,
-  autocapitalize: false,
-  width: '100%',
-  rows: 16,
-  resize: true,
-  submit: true,
-  readonly: false,
-  disabled: false,
-  monospace: true,
-}))
-return {queryDefault,query};
+return {query};
 }});
 
-define({id: "edf5e792", inputs: ["esqlQuery","proxy","query","display","Inputs","html"], outputs: ["data"], body: async (esqlQuery,proxy,query,display,Inputs,html) => {
-let data
-try {
-  data = await esqlQuery(proxy.es, query)
-  display(Inputs.table(data))
-} catch(e) {
-  display(html`<code>error: ${e.message}</code>`)
-}
-return {data};
+define({id: "1afe203f", inputs: ["esqlQuery","proxyPR","query","proxyST","proxyQA"], outputs: ["dataPR","dataST","dataQA"], body: (esqlQuery,proxyPR,query,proxyST,proxyQA) => {
+const dataPR = esqlQuery(proxyPR.es, query)
+const dataST = esqlQuery(proxyST.es, query)
+const dataQA = esqlQuery(proxyQA.es, query)
+return {dataPR,dataST,dataQA};
+}});
+
+define({id: "e22ff84a", inputs: ["Inputs","dataPR","display"], body: async (Inputs,dataPR,display) => {
+display(await(
+Inputs.table(dataPR)
+))
+}});
+
+define({id: "5b5f6207", inputs: ["Inputs","dataST","display"], body: async (Inputs,dataST,display) => {
+display(await(
+Inputs.table(dataST)
+))
+}});
+
+define({id: "609d929f", inputs: ["Inputs","dataQA","display"], body: async (Inputs,dataQA,display) => {
+display(await(
+Inputs.table(dataQA)
+))
 }});
 
 </script>
@@ -91,19 +116,19 @@ return {data};
   <div id="observablehq-search"><input type="search" placeholder="Search"></div>
   <div id="observablehq-search-results"></div>
   <script>{const o=document.querySelector("#observablehq-search");o.setAttribute("data-shortcut",`${/Mac|iPhone/.test(navigator.platform)?"\u2318":"Alt-"}K`);const t=o.querySelector("input"),r=()=>import("../_observablehq/search.js");t.addEventListener("focus",r,{once:!0}),t.addEventListener("keydown",r,{once:!0});const c=document.querySelector("#observablehq-sidebar-toggle");addEventListener("keydown",e=>{(e.code==="KeyK"&&e.metaKey&&!e.altKey&&!e.ctrlKey||e.key==="/"&&!e.metaKey&&!e.altKey&&!e.ctrlKey&&e.target===document.body)&&(c.checked?t.focus():(c.click(),t.focus(),c.click()),t.select(),e.preventDefault())});}</script>
-  <section>
-    <summary class="observablehq-link"><a href="../overview/">Dashboards for Overview</a></summary>
+  <section class="observablehq-section-active">
+    <summary class="observablehq-link"><a href="./">Dashboards for Overview</a></summary>
     <ol>
-    <li class="observablehq-link"><a href="../overview/tasks.html">Tasks</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./tasks.html">Tasks</a></li>
     </ol>
   </section>
   <ol>
     <li class="observablehq-link"><a href="../alerting/">Dashboards for Alerting</a></li>
   </ol>
-  <section class="observablehq-section-active">
-    <summary class="observablehq-link"><a href="./">Odds &#x27;n Ends</a></summary>
+  <section>
+    <summary class="observablehq-link"><a href="../odds-n-ends/">Odds &#x27;n Ends</a></summary>
     <ol>
-    <li class="observablehq-link observablehq-link-active"><a href="./esql-query.html">ES|QL query tester</a></li>
+    <li class="observablehq-link"><a href="../odds-n-ends/esql-query.html">ES|QL query tester</a></li>
     </ol>
   </section>
 </nav>
@@ -114,15 +139,22 @@ return {data};
 </aside>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="odds-'n-ends---es%7Cql-query" tabindex="-1"><a class="observablehq-header-anchor" href="#odds-'n-ends---es%7Cql-query">Odds 'n Ends - ES|QL query</a></h1>
-<p>First, select a proxy</p>
-<div class="observablehq observablehq--block"><!--:e80f5a53:--></div>
-<div class="observablehq observablehq--block"><!--:1cc50b59:--></div>
-<div class="observablehq observablehq--block"><!--:bc40b90d:--></div>
-<div class="observablehq observablehq--block"><!--:edf5e792:--></div>
+<h1 id="tasks" tabindex="-1"><a class="observablehq-header-anchor" href="#tasks">tasks</a></h1>
+<div class="observablehq observablehq--block"><!--:5874da8f:--></div>
+<p>production: <observablehq-loading></observablehq-loading><!--:72b94b9e:--> ;
+staging:    <observablehq-loading></observablehq-loading><!--:e0153a55:--> ;
+qa:         <observablehq-loading></observablehq-loading><!--:33543dd0:--></p>
+<div class="observablehq observablehq--block"><!--:0a6bc9fb:--></div>
+<div class="observablehq observablehq--block"><!--:1afe203f:--></div>
+<p>Production:</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:e22ff84a:--></div>
+<p>Staging:</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:5b5f6207:--></div>
+<p>QA:</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:609d929f:--></div>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="./"><span>Odds &#x27;n Ends</span></a></nav>
+<nav><a rel="prev" href="./"><span>Dashboards for Overview</span></a><a rel="next" href="../alerting/"><span>Dashboards for Alerting</span></a></nav>
 <div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T00:03:56">Jun 27, 2024</a>.</div>
 </footer>
 </div>

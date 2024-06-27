@@ -17,6 +17,18 @@ async function esqlQueryRaw(url, query) {
 
 /** @type { (esqlResponse: EsqlResponse) => TidyData } */
 function esqlResponseAsTidyData(esqlResponse) {
+  if (esqlResponse.error) {
+    throw new Error(`response contained error: ${JSON.stringify(esqlResponse, null, 2)}`)
+  }
+
+  if (esqlResponse.columns == null) {
+    throw new Error(`response contained no columns: ${JSON.stringify(esqlResponse, null, 2)}`)
+  }
+
+  if (esqlResponse.values == null) {
+    throw new Error(`response contained no values: ${JSON.stringify(esqlResponse, null, 2)}`)
+  }
+
   const names = esqlResponse.columns.map(c => c.name)
   
   return esqlResponse.values.map(value => {

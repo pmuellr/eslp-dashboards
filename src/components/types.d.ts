@@ -7,6 +7,7 @@ interface Proxy {
 interface EsqlResponse {
   columns: { name: string, type: string }[]
   values: unknown[][]
+  error?: unknown
 }
 
 type TidyData = Record<string, unknown>[]
@@ -29,4 +30,26 @@ declare module "@observablehq/inputs" {
     disabled?: false | unknown[]
   }
   export function select<T=string>(data: T[] | Map<string, T>, options?: SelectOptions<T>): HTMLElement
-}
+  
+  interface TextareaOptions {
+    label: string | HTMLElement
+    value: string
+    placeholder: string
+    spellcheck: boolean
+    autocomplete: string | boolean
+    autocapitalize: string | boolean
+    minlength: number
+    maxlength: number
+    required: boolean
+    validate: (t: string) => boolean
+    width: number
+    rows: number
+    resize: boolean
+    submit: boolean
+    readonly: boolean
+    disabled: boolean
+    monospace: boolean
+  }
+
+  export function textarea(options?: TextareaOptions): HTMLElement
+}  
