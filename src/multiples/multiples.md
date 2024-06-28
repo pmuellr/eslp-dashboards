@@ -5,7 +5,7 @@ import { getProxies } from '../components/proxy-picker.js';
 import { esqlQuery } from '../components/esql.js';
 ```
 
-Select proxies:
+Select multiple proxies:
 
 ```js
 const allProxies = await getProxies();

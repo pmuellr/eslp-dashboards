@@ -10,10 +10,28 @@
 <link rel="modulepreload" href="./_observablehq/client.js">
 <link rel="modulepreload" href="./_observablehq/runtime.js">
 <link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_observablehq/stdlib/mermaid.js">
+<link rel="modulepreload" href="./_npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs._esm.js">
 <link rel="icon" type="image/png" href="./_file/favicon.67fd5e86.png">
 <script type="module">
 
-import "./_observablehq/client.js";
+import {define} from "./_observablehq/client.js";
+
+define({id: "8bd19895", inputs: ["mermaid","display"], body: async (mermaid,display) => {
+display(await(
+await mermaid`sequenceDiagram
+    participant GitHub
+    participant browser
+    participant eslp
+    participant Elasticsearch
+    browser       ->> GitHub        : browser requests site
+    GitHub        ->> browser       : Github sends html, js, etc
+    browser       ->> eslp          : browser sends request to Elasticsearch via eslp
+    eslp          ->> Elasticsearch : eslp makes authenticated request to Elasticsearch
+    Elasticsearch ->> eslp          : Elasticsearch returns results to eslp
+    eslp          ->> browser       : eslp returns results to browser`
+))
+}});
 
 </script>
 <input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
@@ -49,6 +67,10 @@ import "./_observablehq/client.js";
 <script>{Object.assign(document.createElement("a"),{href:""}).password&&location.replace(location.href);const e=document.querySelector("#observablehq-sidebar"),t=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?t.checked=r==="true":t.indeterminate=!0;for(const o of document.querySelectorAll("#observablehq-sidebar summary")){const s=o.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${o.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
 <aside id="observablehq-toc" data-selector="h1:not(:first-of-type)[id], h2:first-child[id], :not(h1) + h2[id]">
 <nav>
+<div>Contents</div>
+<ol>
+<li class="observablehq-secondary-link"><a href="#how-this-works">how this works</a></li>
+</ol>
 </nav>
 </aside>
 <div id="observablehq-center">
@@ -99,9 +121,43 @@ instructions to create an SSL certificate to use with <code>eslp</code>:</p>
 </tr>
 </tbody>
 </table>
+<h2 id="how-this-works" tabindex="-1"><a class="observablehq-header-anchor" href="#how-this-works">how this works</a></h2>
+<h3 id="building-the-site" tabindex="-1"><a class="observablehq-header-anchor" href="#building-the-site">building the site</a></h3>
+<p>We started with the
+<a href="https://observablehq.com/framework/getting-started" target="_blank" rel="noopener noreferrer">Observable Framework Getting started</a>
+page, running <code>npm init @observablehq</code> to build the skeleton of the project.
+Sadly, this appears to be old code, so put source in <code>docs</code> instead of
+<code>src</code>.  To publish to GitHub Pages, you need to populate <code>docs</code> with the
+content, so that becomes our output directory.  Also used <code>cleanUrls: false</code>,
+as I don't want to have to figure out how to make that work on GitHub Pages
+with Jekyll, if even possible.  I like it that way anyway!</p>
+<p>The workflow is then this:</p>
+<ul>
+<li>run <code>npm run dev</code> which starts the dev server on port 3000, with hot
+reloading and all that</li>
+<li>edit and save <code>.md</code> and <code>.js</code> files, site updated live, and current
+page refreshed</li>
+<li>when ready to publish, kill the <code>npm run dev</code>, and run <code>npm run build</code>
+to get a clean build; then commit and push and the GitHub Pages site
+will be updated in a short while</li>
+</ul>
+<h3 id="networking-between-browser-and-elasticsearch" tabindex="-1"><a class="observablehq-header-anchor" href="#networking-between-browser-and-elasticsearch">networking between browser and Elasticsearch</a></h3>
+<p>For this site anyway, you need to be running
+<a href="https://github.com/pmuellr/eslp" target="_blank" rel="noopener noreferrer"><code>eslp</code></a> so that the web pages
+can connect to Elasticsearch clusters.  The web pages accessing
+Elasticsearch are making CORS requests to <code>eslp</code>, which sends them
+to the appropriate cluster with the specified credentials.  The
+proxies you've configured in <code>eslp</code> will be visible in the site's
+pages in a list (single- or multi-select).</p>
+<p>In terms of network topology, the Elasticsearch data never leaves
+your local machine, the Observable Framework only provides live
+programming client side.</p>
+<p>After the browser loads the source files for the site from Github, it
+won't access GitHub after that.</p>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:8bd19895:--></div>
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./multiples/"><span>Multiples</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-28T16:08:38">Jun 28, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-28T17:13:30">Jun 28, 2024</a>.</div>
 </footer>
 </div>
