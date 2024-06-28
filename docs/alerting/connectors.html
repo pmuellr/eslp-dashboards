@@ -57,7 +57,7 @@
 <link rel="modulepreload" href="../_npm/internmap@2.0.3/_esm.js">
 <link rel="modulepreload" href="../_npm/delaunator@5.0.1/_esm.js">
 <link rel="modulepreload" href="../_npm/robust-predicates@3.0.2/_esm.js">
-<link rel="icon" type="image/png" href="../_file/favicon.d69f2e06.png">
+<link rel="icon" type="image/png" href="../_file/favicon.67fd5e86.png">
 <script type="module">
 
 import {define} from "../_observablehq/client.js";
@@ -69,10 +69,15 @@ const proxy = view(Inputs.select(proxies))
 return {getProxies,esqlQuery,proxies,proxy};
 }});
 
-define({id: "f4e2b7b6", outputs: ["query"], body: () => {
+define({id: "96993f46", inputs: ["view","Inputs"], outputs: ["lookBackMinInput"], body: (view,Inputs) => {
+const lookBackMinInput = view(Inputs.range([1, 60 * 24 * 7], {step: 1, value: 1}))
+return {lookBackMinInput};
+}});
+
+define({id: "937ad4e3", inputs: ["lookBackMinInput"], outputs: ["query"], body: (lookBackMinInput) => {
 const query = `
 FROM .kibana-event-log-*
-| WHERE @timestamp > NOW() - 240 hour
+| WHERE @timestamp > NOW() - ${lookBackMinInput} minutes
 | WHERE event.provider == "actions"
 | WHERE event.action   == "execute"
 
@@ -151,6 +156,28 @@ Plot.plot({
 ))
 }});
 
+define({id: "a536fd14", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
+display(await(
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  marks: [
+    Plot.frame(),
+    Plot.rectY(data, Plot.binX(
+      {y: "count"}, 
+      {
+        x: "date", 
+        fill: "name",
+        channels,
+        tip: true,      
+      },
+    )),
+  ]
+})
+))
+}});
+
 define({id: "26da0b85", mode: "inline", inputs: ["display","Inputs","data"], body: (display,Inputs,data) => {
 display(Inputs.table(data))
 }});
@@ -167,13 +194,13 @@ display(Inputs.table(data))
   <div id="observablehq-search-results"></div>
   <script>{const o=document.querySelector("#observablehq-search");o.setAttribute("data-shortcut",`${/Mac|iPhone/.test(navigator.platform)?"\u2318":"Alt-"}K`);const t=o.querySelector("input"),r=()=>import("../_observablehq/search.js");t.addEventListener("focus",r,{once:!0}),t.addEventListener("keydown",r,{once:!0});const c=document.querySelector("#observablehq-sidebar-toggle");addEventListener("keydown",e=>{(e.code==="KeyK"&&e.metaKey&&!e.altKey&&!e.ctrlKey||e.key==="/"&&!e.metaKey&&!e.altKey&&!e.ctrlKey&&e.target===document.body)&&(c.checked?t.focus():(c.click(),t.focus(),c.click()),t.select(),e.preventDefault())});}</script>
   <section>
-    <summary class="observablehq-link"><a href="../overview/">Dashboards for Overview</a></summary>
+    <summary class="observablehq-link"><a href="../multiples/">Multiples</a></summary>
     <ol>
-    <li class="observablehq-link"><a href="../overview/tasks.html">Tasks</a></li>
+    <li class="observablehq-link"><a href="../multiples/multiples.html">Multiples</a></li>
     </ol>
   </section>
   <section class="observablehq-section-active">
-    <summary class="observablehq-link"><a href="./">Dashboards for Alerting</a></summary>
+    <summary class="observablehq-link"><a href="./">Alerting</a></summary>
     <ol>
     <li class="observablehq-link"><a href="./rules.html">Rules</a></li>
     <li class="observablehq-link observablehq-link-active"><a href="./connectors.html">Connectors</a></li>
@@ -193,6 +220,7 @@ display(Inputs.table(data))
 <ol>
 <li class="observablehq-secondary-link"><a href="#connector-duration-by-name">connector duration by name</a></li>
 <li class="observablehq-secondary-link"><a href="#connector-errors-by-name">connector errors by name</a></li>
+<li class="observablehq-secondary-link"><a href="#connector-executions-by-name">connector executions by name</a></li>
 </ol>
 </nav>
 </aside>
@@ -201,7 +229,9 @@ display(Inputs.table(data))
 <h1 id="connectors" tabindex="-1"><a class="observablehq-header-anchor" href="#connectors">Connectors</a></h1>
 <p>Select a proxy:</p>
 <div class="observablehq observablehq--block"><!--:698d307f:--></div>
-<div class="observablehq observablehq--block"><!--:f4e2b7b6:--></div>
+<p>Minutes to look back:</p>
+<div class="observablehq observablehq--block"><!--:96993f46:--></div>
+<div class="observablehq observablehq--block"><!--:937ad4e3:--></div>
 <div class="observablehq observablehq--block"><!--:51562587:--></div>
 <h1 id="connector-duration-by-name" tabindex="-1"><a class="observablehq-header-anchor" href="#connector-duration-by-name">connector duration by name</a></h1>
 <p>Note, connector type is <strong>NOT</strong> available in the event log!</p>
@@ -209,6 +239,8 @@ display(Inputs.table(data))
 <h1 id="connector-errors-by-name" tabindex="-1"><a class="observablehq-header-anchor" href="#connector-errors-by-name">connector errors by name</a></h1>
 <p>Note, connector type is <strong>NOT</strong> available in the event log!</p>
 <div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:f430fd74:--></div>
+<h1 id="connector-executions-by-name" tabindex="-1"><a class="observablehq-header-anchor" href="#connector-executions-by-name">connector executions by name</a></h1>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:a536fd14:--></div>
 <!-- data as tables -->
 <details><summary>data</summary>
 <p><observablehq-loading></observablehq-loading><!--:26da0b85:--></p>
@@ -216,6 +248,6 @@ display(Inputs.table(data))
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="prev" href="./rules.html"><span>Rules</span></a><a rel="next" href="../odds-n-ends/"><span>Odds &#x27;n Ends</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T18:27:39">Jun 27, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-28T16:08:38">Jun 28, 2024</a>.</div>
 </footer>
 </div>

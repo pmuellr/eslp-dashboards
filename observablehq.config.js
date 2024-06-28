@@ -8,14 +8,14 @@ export default {
   head:      '<link rel="icon" type="image/png" href="favicon.png"></link>',
   pages: [
     {
-      name: 'Dashboards for Overview',
-      path: '/overview/',
+      name: 'Multiples',
+      path: '/multiples/',
       pages: [
-        { path: 'overview/tasks.html', name: 'Tasks' },
+        { path: 'multiples/multiples.html', name: 'Multiples' },
       ],
     },
     {
-      name: 'Dashboards for Alerting',
+      name: 'Alerting',
       path: '/alerting/',
       pages: [
         { path: 'alerting/rules.html', name: 'Rules' },

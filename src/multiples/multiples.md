@@ -1,12 +1,17 @@
-# Rules
-
-Select a proxy:
+# Multiples
 
 ```js
 import { getProxies } from '../components/proxy-picker.js';
 import { esqlQuery } from '../components/esql.js';
-const proxies = await getProxies();
-const proxy = view(Inputs.select(proxies))
+```
+
+Select proxies:
+
+```js
+const allProxies = await getProxies();
+const firstProxy = allProxies.entries().next().value[1]
+
+const proxies = view(Inputs.select(allProxies, { multiple: true, value: firstProxy.name }))
 ```
 
 Minutes to look back:
@@ -16,13 +21,9 @@ const lookBackMinInput = view(Inputs.range([1, 60 * 24 * 7], {step: 1, value: 1}
 ```
 
 ```js
-const lookBackMin = lookBackMinInput || 1
-```
-
-```js
 const query = `
 FROM .kibana-event-log-*
-| WHERE @timestamp > NOW() - ${lookBackMin} minutes
+| WHERE @timestamp > NOW() - ${lookBackMinInput} minutes
 | WHERE event.provider == "alerting"
 | WHERE event.action   == "execute"
 
@@ -34,7 +35,6 @@ FROM .kibana-event-log-*
 | RENAME event.start                                                     AS date
 | RENAME event.outcome                                                   AS outcome
 | RENAME rule.id                                                         AS id
-| RENAME rule.name                                                       AS name
 | RENAME rule.category                                                   AS type
 | RENAME kibana.alert.rule.execution.metrics.alert_counts.new            AS alertsNew
 | RENAME kibana.alert.rule.execution.metrics.alert_counts.recovered      AS alertsRecovered
@@ -42,36 +42,29 @@ FROM .kibana-event-log-*
 | RENAME kibana.alert.rule.execution.metrics.number_of_generated_actions AS actionsGenerated
 | RENAME kibana.alert.rule.execution.metrics.number_of_triggered_actions AS actionsTriggered
 
-| KEEP date, outcome, type, id, duration, delay, totalRun, totalSearch, message,
+| KEEP date, outcome, type, id, duration, delay, totalRun, totalSearch, 
        alertsNew, alertsRecovered, alertsActive, actionsGenerated, actionsTriggered
 
 | SORT date desc
-| LIMIT 10000
+| LIMIT 5000
 `.trim()
 ```
 
 ```js
-const data = await esqlQuery(proxy.es, query)
-const channels = {
-  date: 'date',
-  name: 'name',
-  message: 'message',
-  outcome: 'outcome',
-  type: 'type',
-  id: 'id',
-  duration: 'duration',
-  delay: 'delay',
-  totalRun: 'totalRun',
-  totalSearch: 'totalSearch',
-  alertsNew: 'alertsNew',
-  alertsRecovered: 'alertsRecovered',
-  alertsActive: 'alertsActive',
-  actionsGenerated: 'actionsGenerated',
-  actionsTriggered: 'actionsTriggered',
+const promises = []
+let tempData = []
+for (const proxy of proxies) {
+  const promise = esqlQuery(proxy.es, query)
+  promises.push(promise)
+  promise.then(datums => { 
+    datums.map(datum => datum.env = proxy.name)
+    tempData = tempData.concat(datums)
+  })
 }
-
+await Promise.allSettled(promises)
+const data = tempData
 ```
-   
+
 # rule duration by type
 
 ```js
@@ -85,6 +78,7 @@ Plot.plot({
     Plot.dot(data, { 
       x: 'date', 
       y: 'duration', 
+      fx: 'env',
       fill: 'type',
       channels,
       tip: true      
@@ -100,12 +94,13 @@ Plot.plot({
   grid: true,
   height: 300,
   color: { legend: true },
-  y: { label: 'duration (seconds)' },
+  y: { label: 'duration (seconds)', zero: true },
   marks: [
     Plot.frame(),
     Plot.dot(data.filter(d => d.outcome != 'success'), { 
       x: 'date', 
       y: 'duration', 
+      fx: 'env',
       fill: 'type',
       channels,
       tip: true      
@@ -114,41 +109,20 @@ Plot.plot({
 })
 ```
 
-# rule executions by type
+# rule delays by type
 
 ```js
 Plot.plot({
   grid: true,
   height: 300,
   color: { legend: true },
+  y: { label: 'delay (seconds)', zero: true },
   marks: [
     Plot.frame(),
-    Plot.rectY(data, Plot.binX(
-      {y: "count"}, 
-      {
-        x: "date", 
-        fill: "type",
-        channels,
-        tip: true,      
-      },
-    )),
-  ]
-})
-```
-
-# rules creating alerts
-
-```js
-Plot.plot({
-  grid: true,
-  height: 300,
-  color: { legend: true },
-  y: { label: 'alerts created', zero: true },
-  marks: [
-    Plot.frame(),
-    Plot.dot(data.filter(d => d.alertsNew > 0), { 
+    Plot.dot(data, { 
       x: 'date', 
-      y: 'alertsNew', 
+      y: 'delay', 
+      fx: 'env',
       fill: 'type',
       channels,
       tip: true      
@@ -156,10 +130,30 @@ Plot.plot({
   ]
 })
 ```
+
 
 <!-- data as tables -->
-<details><summary>data</summary>
+<details><summary>data tables</summary>
 
 ${display(Inputs.table(data))}
 
 </details>
+
+```js
+const channels = {
+  date: 'date',
+  outcome: 'outcome',
+  type: 'type',
+  id: 'id',
+  name: 'name',
+  duration: 'duration',
+  delay: 'delay',
+  totalRun: 'totalRun',
+  totalSearch: 'totalSearch',
+  alertsNew: 'alertsNew',
+  alertsRecovered: 'alertsRecovered',
+  alertsActive: 'alertsActive',
+  actionsGenerated: 'actionsGenerated',
+  actionsTriggered: 'actionsTriggered',
+}
+```

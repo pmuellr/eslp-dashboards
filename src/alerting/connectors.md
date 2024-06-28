@@ -9,10 +9,16 @@ const proxies = await getProxies();
 const proxy = view(Inputs.select(proxies))
 ```
 
+Minutes to look back:
+
+```js
+const lookBackMinInput = view(Inputs.range([1, 60 * 24 * 7], {step: 1, value: 1}))
+```
+
 ```js
 const query = `
 FROM .kibana-event-log-*
-| WHERE @timestamp > NOW() - 240 hour
+| WHERE @timestamp > NOW() - ${lookBackMinInput} minutes
 | WHERE event.provider == "actions"
 | WHERE event.action   == "execute"
 
@@ -89,6 +95,28 @@ Plot.plot({
       channels,
       tip: true      
     })
+  ]
+})
+```
+
+# connector executions by name
+
+```js
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  marks: [
+    Plot.frame(),
+    Plot.rectY(data, Plot.binX(
+      {y: "count"}, 
+      {
+        x: "date", 
+        fill: "name",
+        channels,
+        tip: true,      
+      },
+    )),
   ]
 })
 ```

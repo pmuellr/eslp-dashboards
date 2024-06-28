@@ -19,13 +19,13 @@ FROM .kibana-event-log-*
 | WHERE event.provider == "alerting"
 | WHERE event.action   == "execute"
 
-| RENAME rule.name                                                    AS  name
-| RENAME rule.category                                                AS  rule_type
-| RENAME kibana.alert.rule.execution.metrics.total_run_duration_ms    AS total_run_ms             
-| RENAME kibana.alert.rule.execution.metrics.total_search_duration_ms AS total_search_ms                
+| RENAME rule.name      AS name
+| RENAME rule.category  AS type
+| RENAME event.duration AS duration
 
-| KEEP @timestamp, name, rule_type, total_run_ms, total_search_ms
+| KEEP @timestamp, name, type, duration
 
+| SORT @timestamp desc
 | LIMIT 100
 `.trim()
 

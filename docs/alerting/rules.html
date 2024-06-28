@@ -57,7 +57,7 @@
 <link rel="modulepreload" href="../_npm/internmap@2.0.3/_esm.js">
 <link rel="modulepreload" href="../_npm/delaunator@5.0.1/_esm.js">
 <link rel="modulepreload" href="../_npm/robust-predicates@3.0.2/_esm.js">
-<link rel="icon" type="image/png" href="../_file/favicon.d69f2e06.png">
+<link rel="icon" type="image/png" href="../_file/favicon.67fd5e86.png">
 <script type="module">
 
 import {define} from "../_observablehq/client.js";
@@ -69,10 +69,20 @@ const proxy = view(Inputs.select(proxies))
 return {getProxies,esqlQuery,proxies,proxy};
 }});
 
-define({id: "ea2b93df", outputs: ["query"], body: () => {
+define({id: "96993f46", inputs: ["view","Inputs"], outputs: ["lookBackMinInput"], body: (view,Inputs) => {
+const lookBackMinInput = view(Inputs.range([1, 60 * 24 * 7], {step: 1, value: 1}))
+return {lookBackMinInput};
+}});
+
+define({id: "da609380", inputs: ["lookBackMinInput"], outputs: ["lookBackMin"], body: (lookBackMinInput) => {
+const lookBackMin = lookBackMinInput || 1
+return {lookBackMin};
+}});
+
+define({id: "ec6c90cc", inputs: ["lookBackMin"], outputs: ["query"], body: (lookBackMin) => {
 const query = `
 FROM .kibana-event-log-*
-| WHERE @timestamp > NOW() - 4 hour
+| WHERE @timestamp > NOW() - ${lookBackMin} minutes
 | WHERE event.provider == "alerting"
 | WHERE event.action   == "execute"
 
@@ -92,19 +102,21 @@ FROM .kibana-event-log-*
 | RENAME kibana.alert.rule.execution.metrics.number_of_generated_actions AS actionsGenerated
 | RENAME kibana.alert.rule.execution.metrics.number_of_triggered_actions AS actionsTriggered
 
-| KEEP date, outcome, type, id, duration, delay, totalRun, totalSearch, 
+| KEEP date, outcome, type, id, duration, delay, totalRun, totalSearch, message,
        alertsNew, alertsRecovered, alertsActive, actionsGenerated, actionsTriggered
 
 | SORT date desc
-| LIMIT 5000
+| LIMIT 10000
 `.trim()
 return {query};
 }});
 
-define({id: "2119dcfa", inputs: ["esqlQuery","proxy","query"], outputs: ["data","channels"], body: async (esqlQuery,proxy,query) => {
+define({id: "ffba0ba5", inputs: ["esqlQuery","proxy","query"], outputs: ["data","channels"], body: async (esqlQuery,proxy,query) => {
 const data = await esqlQuery(proxy.es, query)
 const channels = {
   date: 'date',
+  name: 'name',
+  message: 'message',
   outcome: 'outcome',
   type: 'type',
   id: 'id',
@@ -143,7 +155,7 @@ Plot.plot({
 ))
 }});
 
-define({id: "e3dbf851", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
+define({id: "bbfbd549", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
 display(await(
 Plot.plot({
   grid: true,
@@ -152,10 +164,53 @@ Plot.plot({
   y: { label: 'duration (seconds)' },
   marks: [
     Plot.frame(),
-    Plot.dot(data, { 
+    Plot.dot(data.filter(d => d.outcome != 'success'), { 
       x: 'date', 
       y: 'duration', 
-      fill: 'outcome',
+      fill: 'type',
+      channels,
+      tip: true      
+    })
+  ]
+})
+))
+}});
+
+define({id: "9050a975", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
+display(await(
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  marks: [
+    Plot.frame(),
+    Plot.rectY(data, Plot.binX(
+      {y: "count"}, 
+      {
+        x: "date", 
+        fill: "type",
+        channels,
+        tip: true,      
+      },
+    )),
+  ]
+})
+))
+}});
+
+define({id: "ec69c176", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
+display(await(
+Plot.plot({
+  grid: true,
+  height: 300,
+  color: { legend: true },
+  y: { label: 'alerts created', zero: true },
+  marks: [
+    Plot.frame(),
+    Plot.dot(data.filter(d => d.alertsNew > 0), { 
+      x: 'date', 
+      y: 'alertsNew', 
+      fill: 'type',
       channels,
       tip: true      
     })
@@ -180,13 +235,13 @@ display(Inputs.table(data))
   <div id="observablehq-search-results"></div>
   <script>{const o=document.querySelector("#observablehq-search");o.setAttribute("data-shortcut",`${/Mac|iPhone/.test(navigator.platform)?"\u2318":"Alt-"}K`);const t=o.querySelector("input"),r=()=>import("../_observablehq/search.js");t.addEventListener("focus",r,{once:!0}),t.addEventListener("keydown",r,{once:!0});const c=document.querySelector("#observablehq-sidebar-toggle");addEventListener("keydown",e=>{(e.code==="KeyK"&&e.metaKey&&!e.altKey&&!e.ctrlKey||e.key==="/"&&!e.metaKey&&!e.altKey&&!e.ctrlKey&&e.target===document.body)&&(c.checked?t.focus():(c.click(),t.focus(),c.click()),t.select(),e.preventDefault())});}</script>
   <section>
-    <summary class="observablehq-link"><a href="../overview/">Dashboards for Overview</a></summary>
+    <summary class="observablehq-link"><a href="../multiples/">Multiples</a></summary>
     <ol>
-    <li class="observablehq-link"><a href="../overview/tasks.html">Tasks</a></li>
+    <li class="observablehq-link"><a href="../multiples/multiples.html">Multiples</a></li>
     </ol>
   </section>
   <section class="observablehq-section-active">
-    <summary class="observablehq-link"><a href="./">Dashboards for Alerting</a></summary>
+    <summary class="observablehq-link"><a href="./">Alerting</a></summary>
     <ol>
     <li class="observablehq-link observablehq-link-active"><a href="./rules.html">Rules</a></li>
     <li class="observablehq-link"><a href="./connectors.html">Connectors</a></li>
@@ -206,6 +261,8 @@ display(Inputs.table(data))
 <ol>
 <li class="observablehq-secondary-link"><a href="#rule-duration-by-type">rule duration by type</a></li>
 <li class="observablehq-secondary-link"><a href="#rule-errors-by-type">rule errors by type</a></li>
+<li class="observablehq-secondary-link"><a href="#rule-executions-by-type">rule executions by type</a></li>
+<li class="observablehq-secondary-link"><a href="#rules-creating-alerts">rules creating alerts</a></li>
 </ol>
 </nav>
 </aside>
@@ -214,19 +271,26 @@ display(Inputs.table(data))
 <h1 id="rules" tabindex="-1"><a class="observablehq-header-anchor" href="#rules">Rules</a></h1>
 <p>Select a proxy:</p>
 <div class="observablehq observablehq--block"><!--:698d307f:--></div>
-<div class="observablehq observablehq--block"><!--:ea2b93df:--></div>
-<div class="observablehq observablehq--block"><!--:2119dcfa:--></div>
+<p>Minutes to look back:</p>
+<div class="observablehq observablehq--block"><!--:96993f46:--></div>
+<div class="observablehq observablehq--block"><!--:da609380:--></div>
+<div class="observablehq observablehq--block"><!--:ec6c90cc:--></div>
+<div class="observablehq observablehq--block"><!--:ffba0ba5:--></div>
 <h1 id="rule-duration-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-duration-by-type">rule duration by type</a></h1>
 <div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:8529f6df:--></div>
 <h1 id="rule-errors-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-errors-by-type">rule errors by type</a></h1>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:e3dbf851:--></div>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:bbfbd549:--></div>
+<h1 id="rule-executions-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-executions-by-type">rule executions by type</a></h1>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:9050a975:--></div>
+<h1 id="rules-creating-alerts" tabindex="-1"><a class="observablehq-header-anchor" href="#rules-creating-alerts">rules creating alerts</a></h1>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:ec69c176:--></div>
 <!-- data as tables -->
 <details><summary>data</summary>
 <p><observablehq-loading></observablehq-loading><!--:26da0b85:--></p>
 </details>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="./"><span>Dashboards for Alerting</span></a><a rel="next" href="./connectors.html"><span>Connectors</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-27T18:27:39">Jun 27, 2024</a>.</div>
+<nav><a rel="prev" href="./"><span>Alerting</span></a><a rel="next" href="./connectors.html"><span>Connectors</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-28T16:08:38">Jun 28, 2024</a>.</div>
 </footer>
 </div>
