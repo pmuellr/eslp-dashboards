@@ -88,7 +88,7 @@ objects where the columns are represented as key/value pairs, rather
 than with ES|QL producing an array of values and separate array of
 column info.  Having to do this transition for every row pains me,
 especially when I use `LIMIT 10000`.  I think it should be considered
-as an additional output format, called, apparenlty, "Tidy Data".
+as an additional output format, called, apparently, "Tidy Data".
 
 The only other niggle I have with ES|QL - so I love it - is the reverse
 naming of the parms for `EVAL` and `RENAME`.  I stack these together
@@ -122,7 +122,7 @@ build or find an environment like this.
 
 And I actually tried something
 like this, where you code in Markdown and your JavaScript is in
-`/`/`/`js`  ... `/`/`/`` code blocks.  The big problem with this is that
+fenced (triple backtic'd) js code blocks.  The big problem with this is that
 there is **NO** Javacript typing help here, as expected.  But I 
 just can't live that way.
 
@@ -132,6 +132,10 @@ the meat of the JS code to `.js` files where you'll get all the great
 typing back.  
 
 It's hard.  So easy to add just abit more JS to your markdown ...
+
+And for the Observable Plot library, to some extent doesn't make sense
+to move that code to `.js` files, since AFAICT there is no way to get
+typing help for that, in any case.
 
 ### Observable Plot
 
@@ -143,6 +147,8 @@ be anywhere close to Vega Lite, especially with interactions.
 
 Good to know, because it IS easy to do simple charts, it's just 
 hard-to-impossible to do anything that's not simple.
+
+The lack of interactivity is hard on me, as well.
 
 Also, there don't seem to be any good ways to get typing in this
 library.  I had to add some to a `.d.ts` file for some at least
