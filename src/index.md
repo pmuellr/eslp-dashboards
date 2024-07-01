@@ -62,6 +62,12 @@ In terms of network topology, the Elasticsearch data never leaves
 your local machine, the Observable Framework only provides live
 programming client side.
 
+The browser is making requests to the `eslp` proxies, probably from `https`
+sites, which is fine
+because you're running `eslp` in `https` mode (otherwise it won't work,
+for public pages like at Github), and it's sending CORS headers indicating
+access from localhost is fine.  
+
 After the browser loads the source files for the site from Github, it
 won't access GitHub after that.
 

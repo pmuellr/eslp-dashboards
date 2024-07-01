@@ -152,12 +152,17 @@ pages in a list (single- or multi-select).</p>
 <p>In terms of network topology, the Elasticsearch data never leaves
 your local machine, the Observable Framework only provides live
 programming client side.</p>
+<p>The browser is making requests to the <code>eslp</code> proxies, probably from <code>https</code>
+sites, which is fine
+because you're running <code>eslp</code> in <code>https</code> mode (otherwise it won't work,
+for public pages like at Github), and it's sending CORS headers indicating
+access from localhost is fine.</p>
 <p>After the browser loads the source files for the site from Github, it
 won't access GitHub after that.</p>
 <div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:8bd19895:--></div>
 </main>
 <footer id="observablehq-footer">
 <nav><a rel="next" href="./multiples/"><span>Multiples</span></a></nav>
-<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-06-28T17:13:30">Jun 28, 2024</a>.</div>
+<div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-07-01T14:46:26">Jul 1, 2024</a>.</div>
 </footer>
 </div>
