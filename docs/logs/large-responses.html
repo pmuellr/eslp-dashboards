@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Rules | eslp Dashboards</title>
+<title>Logs | eslp Dashboards</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
 <link rel="preload" as="style" href="../_observablehq/theme-air,near-midnight.css">
@@ -79,138 +79,53 @@ const lookBackMin = lookBackMinInput || 1
 return {lookBackMin};
 }});
 
-define({id: "ec6c90cc", inputs: ["lookBackMin"], outputs: ["query"], body: (lookBackMin) => {
+define({id: "5c33cd88", inputs: ["lookBackMin"], outputs: ["query"], body: (lookBackMin) => {
 const query = `
-FROM .kibana-event-log-*
+FROM logging-*:logs-proxy*
 | WHERE @timestamp > NOW() - ${lookBackMin} minutes
-| WHERE event.provider == "alerting"
-| WHERE event.action   == "execute"
+| WHERE response_length > 5000000
 
-| EVAL duration    = ROUND(event.duration / 1000000000.0, 3)
-| EVAL delay       = ROUND(kibana.task.schedule_delay / 1000000000.0, 3)
-| EVAL totalRun    = ROUND(kibana.alert.rule.execution.metrics.total_run_duration_ms / 1000.0, 3)
-| EVAL totalSearch = ROUND(kibana.alert.rule.execution.metrics.total_search_duration_ms / 1000.0, 3)
+| RENAME @timestamp          AS date
+| RENAME request_length      AS requestLength
+| RENAME response_length     AS responseLength
+| RENAME request_path        AS path
+| RENAME x_opaque_id         AS opaqueId
+| RENAME user_agent.original AS userAgent
 
-| RENAME event.start                                                     AS date
-| RENAME event.outcome                                                   AS outcome
-| RENAME rule.id                                                         AS id
-| RENAME rule.name                                                       AS name
-| RENAME rule.category                                                   AS type
-| RENAME kibana.alert.rule.execution.metrics.alert_counts.new            AS alertsNew
-| RENAME kibana.alert.rule.execution.metrics.alert_counts.recovered      AS alertsRecovered
-| RENAME kibana.alert.rule.execution.metrics.alert_counts.active         AS alertsActive
-| RENAME kibana.alert.rule.execution.metrics.number_of_generated_actions AS actionsGenerated
-| RENAME kibana.alert.rule.execution.metrics.number_of_triggered_actions AS actionsTriggered
-
-| KEEP date, outcome, type, id, duration, delay, totalRun, totalSearch, message,
-       alertsNew, alertsRecovered, alertsActive, actionsGenerated, actionsTriggered
+| KEEP date, requestLength, responseLength, path, opaqueId, userAgent
 
 | SORT date desc
-| LIMIT 10000
+| LIMIT 1000
 `.trim()
 return {query};
 }});
 
-define({id: "ffba0ba5", inputs: ["esqlQuery","proxy","query"], outputs: ["data","channels"], body: async (esqlQuery,proxy,query) => {
+define({id: "ab550177", inputs: ["esqlQuery","proxy","query"], outputs: ["data","channels"], body: async (esqlQuery,proxy,query) => {
 const data = await esqlQuery(proxy.es, query)
 const channels = {
   date: 'date',
-  name: 'name',
-  message: 'message',
-  outcome: 'outcome',
-  type: 'type',
-  id: 'id',
-  duration: 'duration',
-  delay: 'delay',
-  totalRun: 'totalRun',
-  totalSearch: 'totalSearch',
-  alertsNew: 'alertsNew',
-  alertsRecovered: 'alertsRecovered',
-  alertsActive: 'alertsActive',
-  actionsGenerated: 'actionsGenerated',
-  actionsTriggered: 'actionsTriggered',
+  path: 'path',
+  requestLength: 'requestLength',
+  responseLength: 'responseLength',
+  opaqueId: 'opaqueId',
 }
 
 return {data,channels};
 }});
 
-define({id: "8529f6df", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
+define({id: "e1c46685", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
 display(await(
 Plot.plot({
   grid: true,
   height: 300,
   color: { legend: true },
-  y: { label: 'duration (seconds)' },
+  y: { label: 'response length' },
   marks: [
     Plot.frame(),
     Plot.dot(data, { 
       x: 'date', 
-      y: 'duration', 
-      fill: 'type',
-      channels,
-      tip: true      
-    })
-  ]
-})
-))
-}});
-
-define({id: "bbfbd549", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
-display(await(
-Plot.plot({
-  grid: true,
-  height: 300,
-  color: { legend: true },
-  y: { label: 'duration (seconds)' },
-  marks: [
-    Plot.frame(),
-    Plot.dot(data.filter(d => d.outcome != 'success'), { 
-      x: 'date', 
-      y: 'duration', 
-      fill: 'type',
-      channels,
-      tip: true      
-    })
-  ]
-})
-))
-}});
-
-define({id: "9050a975", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
-display(await(
-Plot.plot({
-  grid: true,
-  height: 300,
-  color: { legend: true },
-  marks: [
-    Plot.frame(),
-    Plot.rectY(data, Plot.binX(
-      {y: "count"}, 
-      {
-        x: "date", 
-        fill: "type",
-        channels,
-        tip: true,      
-      },
-    )),
-  ]
-})
-))
-}});
-
-define({id: "ec69c176", inputs: ["Plot","data","channels","display"], body: async (Plot,data,channels,display) => {
-display(await(
-Plot.plot({
-  grid: true,
-  height: 300,
-  color: { legend: true },
-  y: { label: 'alerts created', zero: true },
-  marks: [
-    Plot.frame(),
-    Plot.dot(data.filter(d => d.alertsNew > 0), { 
-      x: 'date', 
-      y: 'alertsNew', 
-      fill: 'type',
+      y: 'responseLength', 
+      fill: 'path',
       channels,
       tip: true      
     })
@@ -240,17 +155,17 @@ display(Inputs.table(data))
     <li class="observablehq-link"><a href="../multiples/multiples.html">Multiples</a></li>
     </ol>
   </section>
-  <section>
+  <section class="observablehq-section-active">
     <summary>Logs</summary>
     <ol>
-    <li class="observablehq-link"><a href="../logs/large-responses.html">Large Responses</a></li>
+    <li class="observablehq-link observablehq-link-active"><a href="./large-responses.html">Large Responses</a></li>
     </ol>
   </section>
-  <section class="observablehq-section-active">
+  <section>
     <summary>Alerting</summary>
     <ol>
-    <li class="observablehq-link observablehq-link-active"><a href="./rules.html">Rules</a></li>
-    <li class="observablehq-link"><a href="./connectors.html">Connectors</a></li>
+    <li class="observablehq-link"><a href="../alerting/rules.html">Rules</a></li>
+    <li class="observablehq-link"><a href="../alerting/connectors.html">Connectors</a></li>
     </ol>
   </section>
   <section>
@@ -265,38 +180,29 @@ display(Inputs.table(data))
 <nav>
 <div>Contents</div>
 <ol>
-<li class="observablehq-secondary-link"><a href="#rule-duration-by-type">rule duration by type</a></li>
-<li class="observablehq-secondary-link"><a href="#rule-errors-by-type">rule errors by type</a></li>
-<li class="observablehq-secondary-link"><a href="#rule-executions-by-type">rule executions by type</a></li>
-<li class="observablehq-secondary-link"><a href="#rules-creating-alerts">rules creating alerts</a></li>
+<li class="observablehq-secondary-link"><a href="#response-length-by-path">response length by path</a></li>
 </ol>
 </nav>
 </aside>
 <div id="observablehq-center">
 <main id="observablehq-main" class="observablehq">
-<h1 id="rules" tabindex="-1"><a class="observablehq-header-anchor" href="#rules">Rules</a></h1>
+<h1 id="logs" tabindex="-1"><a class="observablehq-header-anchor" href="#logs">Logs</a></h1>
 <p>Select a proxy:</p>
 <div class="observablehq observablehq--block"><!--:698d307f:--></div>
 <p>Minutes to look back:</p>
 <div class="observablehq observablehq--block"><!--:96993f46:--></div>
 <div class="observablehq observablehq--block"><!--:da609380:--></div>
-<div class="observablehq observablehq--block"><!--:ec6c90cc:--></div>
-<div class="observablehq observablehq--block"><!--:ffba0ba5:--></div>
-<h1 id="rule-duration-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-duration-by-type">rule duration by type</a></h1>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:8529f6df:--></div>
-<h1 id="rule-errors-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-errors-by-type">rule errors by type</a></h1>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:bbfbd549:--></div>
-<h1 id="rule-executions-by-type" tabindex="-1"><a class="observablehq-header-anchor" href="#rule-executions-by-type">rule executions by type</a></h1>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:9050a975:--></div>
-<h1 id="rules-creating-alerts" tabindex="-1"><a class="observablehq-header-anchor" href="#rules-creating-alerts">rules creating alerts</a></h1>
-<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:ec69c176:--></div>
+<div class="observablehq observablehq--block"><!--:5c33cd88:--></div>
+<div class="observablehq observablehq--block"><!--:ab550177:--></div>
+<h1 id="response-length-by-path" tabindex="-1"><a class="observablehq-header-anchor" href="#response-length-by-path">response length by path</a></h1>
+<div class="observablehq observablehq--block"><observablehq-loading></observablehq-loading><!--:e1c46685:--></div>
 <!-- data as tables -->
 <details><summary>data</summary>
 <p><observablehq-loading></observablehq-loading><!--:26da0b85:--></p>
 </details>
 </main>
 <footer id="observablehq-footer">
-<nav><a rel="prev" href="../logs/large-responses.html"><span>Large Responses</span></a><a rel="next" href="./connectors.html"><span>Connectors</span></a></nav>
+<nav><a rel="prev" href="../multiples/multiples.html"><span>Multiples</span></a><a rel="next" href="../alerting/rules.html"><span>Rules</span></a></nav>
 <div>Built with <a href="https://observablehq.com/" target="_blank" rel="noopener noreferrer">Observable</a> on <a title="2024-07-06T14:48:46">Jul 6, 2024</a>.</div>
 </footer>
 </div>

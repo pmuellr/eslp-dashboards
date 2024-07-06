@@ -9,14 +9,18 @@ export default {
   pages: [
     {
       name: 'Multiples',
-      path: '/multiples/',
       pages: [
         { path: 'multiples/multiples.html', name: 'Multiples' },
       ],
     },
     {
+      name: 'Logs',
+      pages: [
+        { path: 'logs/large-responses.html', name: 'Large Responses' },
+      ],
+    },
+    {
       name: 'Alerting',
-      path: '/alerting/',
       pages: [
         { path: 'alerting/rules.html', name: 'Rules' },
         { path: 'alerting/connectors.html', name: 'Connectors' },
@@ -24,7 +28,6 @@ export default {
     },
     {
       name: `Odds 'n Ends`,
-      path: '/odds-n-ends/',
       pages: [
         { path: 'odds-n-ends/esql-query.html', name: 'ES|QL query tester' },
       ],

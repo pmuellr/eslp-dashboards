@@ -1,3 +1,0 @@
-# Odds 'n Ends
-
-Whatever ...
